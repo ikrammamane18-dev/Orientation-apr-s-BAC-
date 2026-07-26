@@ -8,10 +8,6 @@ import AdminAccessModal from './AdminAccessModal';
 
 /**
  * components/BacOrientationForm.jsx
- *
- * Étape 1 (gratuite) du parcours : sélection de la série puis saisie des notes.
- * Le logo en en-tête sert de zone cachée pour l'accès admin : 5 clics rapides
- * ouvrent AdminAccessModal (voir hooks/useSecretClicks.js).
  */
 export default function BacOrientationForm() {
   const router = useRouter();
@@ -23,16 +19,16 @@ export default function BacOrientationForm() {
 
   const matieres = useMemo(() => (codeSerie ? getMatieresBySerie(codeSerie) : []), [codeSerie]);
 
-  const handleLogoClick = useSecretClicks({
-    requiredClicks: 5,
-    windowMs: 600,
-    onUnlock: () => setShowAdminModal(true),
-  });
+  // Correction de l'utilisation du hook d'accès admin
+  const secretClickProps = useSecretClicks(5, () => setShowAdminModal(true));
 
-  function handleSerieChange(nouvelleSerie) {
+  function handleSerieChange(e) {
+    const nouvelleSerie = e.target.value;
     setCodeSerie(nouvelleSerie);
     setNotes({});
     setErreur('');
+    // Masque le clavier mobile/ferme le menu proprement
+    e.target.blur();
   }
 
   function handleNoteChange(codeMatiere, valeur) {
@@ -48,6 +44,11 @@ export default function BacOrientationForm() {
   async function handleSubmit(e) {
     e.preventDefault();
     setErreur('');
+
+    if (!codeSerie) {
+      setErreur('Veuillez sélectionner votre série au BAC.');
+      return;
+    }
 
     if (!formulaireComplet) {
       setErreur('Merci de renseigner une note valide (entre 0 et 20) pour chaque matière.');
@@ -65,8 +66,6 @@ export default function BacOrientationForm() {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        // On remonte le vrai message serveur (ex: "Variables Supabase manquantes",
-        // "Série inconnue"...) plutôt qu'un texte générique qui masque la cause.
         throw new Error(data.error ?? `Erreur ${res.status}`);
       }
 
@@ -88,7 +87,7 @@ export default function BacOrientationForm() {
       <header className="mb-8 flex flex-col items-center select-none">
         <button
           type="button"
-          onClick={handleLogoClick}
+          onClick={secretClickProps?.handleClick || secretClickProps}
           aria-label="Logo"
           className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#0B6E4F] text-xl font-bold text-white shadow-md active:scale-95 transition-transform"
         >
@@ -110,12 +109,12 @@ export default function BacOrientationForm() {
           </label>
           <select
             value={codeSerie}
-            onChange={(e) => handleSerieChange(e.target.value)}
+            onChange={handleSerieChange}
             className="w-full rounded-xl border border-[#14231C]/15 bg-white px-4 py-3 text-[#14231C] outline-none focus:border-[#0B6E4F] focus:ring-2 focus:ring-[#0B6E4F]/20"
           >
             <option value="">Sélectionnez votre série</option>
             {Object.entries(
-              LISTE_SERIES.reduce((groupes, serie) => {
+              (LISTE_SERIES || []).reduce((groupes, serie) => {
                 (groupes[serie.groupe] ??= []).push(serie);
                 return groupes;
               }, {})
@@ -131,11 +130,11 @@ export default function BacOrientationForm() {
           </select>
         </div>
 
-        {/* Notes dynamiques selon la série choisie */}
+        {/* Notes dynamiques apparaissant dès la sélection de la série */}
         {matieres.length > 0 && (
-          <div className="rounded-2xl bg-white p-4 shadow-sm">
+          <div className="rounded-2xl bg-white p-4 shadow-sm animate-fadeIn">
             <p className="mb-3 text-sm font-medium text-[#14231C]/70">
-              Entrez vos notes sur 20 (coefficients affichés à titre indicatif)
+              Entrez vos notes sur 20 (coefficients affichés à titre indicatif) :
             </p>
             <div className="space-y-3">
               {matieres.map((matiere) => (
@@ -170,8 +169,12 @@ export default function BacOrientationForm() {
 
         <button
           type="submit"
-          disabled={!formulaireComplet || envoiEnCours}
-          className="w-full rounded-xl bg-[#0B6E4F] py-4 text-base font-semibold text-white shadow-lg shadow-[#0B6E4F]/20 disabled:opacity-40"
+          disabled={envoiEnCours}
+          className={`w-full rounded-xl py-4 text-base font-semibold text-white shadow-lg transition-all ${
+            formulaireComplet
+              ? 'bg-[#0B6E4F] shadow-[#0B6E4F]/20 opacity-100'
+              : 'bg-[#0B6E4F]/70 opacity-90'
+          }`}
         >
           {envoiEnCours ? 'Analyse en cours…' : 'Voir mes résultats gratuitement'}
         </button>
