@@ -65,7 +65,7 @@ async function handlePost(request) {
   // Récupère les référentiels depuis Supabase (configurables en admin)
   // plutôt que depuis lib/bacSeries.js en dur, dès que ces tables sont peuplées.
   const [{ data: configBourses }, { data: filieresBrutes }, { data: coefficientsDb }] = await Promise.all([
-    supabaseAdmin.from('bourses').select('seuil_forte, seuil_moyenne').limit(1).maybeSingle(),
+    supabaseAdmin.from('bourses').select('nom, seuil_forte, seuil_moyenne, montant_fcfa, description').limit(1).maybeSingle(),
     supabaseAdmin
       .from('filieres')
       .select(
@@ -95,7 +95,13 @@ async function handlePost(request) {
       codeSerie,
       matieres,
       configBourses: configBourses
-        ? { seuilForte: configBourses.seuil_forte, seuilMoyenne: configBourses.seuil_moyenne }
+        ? {
+            seuilForte: configBourses.seuil_forte,
+            seuilMoyenne: configBourses.seuil_moyenne,
+            nom: configBourses.nom,
+            montantFcfa: configBourses.montant_fcfa,
+            description: configBourses.description,
+          }
         : undefined,
       configFilieres,
     });

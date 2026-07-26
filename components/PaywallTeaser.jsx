@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Script from 'next/script';
 
 const PRIX_AFFICHE_FCFA = 325; // doit rester identique à PRIX_RAPPORT_FCFA (lib/payment.js) — affichage uniquement, le vrai montant facturé est toujours recalculé côté serveur
@@ -8,14 +9,46 @@ const PRIX_AFFICHE_FCFA = 325; // doit rester identique à PRIX_RAPPORT_FCFA (li
 /**
  * components/PaywallTeaser.jsx
  *
- * Étape 2 → 3 du parcours : un prix fixe et unique (325 FCFA), affiché
- * clairement, puis initie la transaction via /api/payment/initiate.
- * Le montant réellement facturé est déterminé côté serveur (lib/payment.js),
- * jamais envoyé par ce composant — voir la note de sécurité dans la route API.
+ * Étape 2 → 3 → 4 du parcours : prix fixe (325 FCFA), initiation du
+ * paiement, PUIS détection du déblocage et redirection automatique vers
+ * /rapport/[sessionId].
+ *
+ * Avant ce correctif, rien ne se passait après le paiement manuel : la page
+ * restait bloquée sur les instructions, sans jamais rediriger vers le
+ * rapport une fois la transaction validée par un admin. On corrige ça avec
+ * un bouton de vérification manuelle + un sondage automatique en arrière-plan.
  */
 export default function PaywallTeaser({ sessionId }) {
+  const router = useRouter();
   const [etat, setEtat] = useState('idle'); // idle | chargement | kkiapay | manuel | erreur
   const [donneesPaiement, setDonneesPaiement] = useState(null);
+  const [verificationEnCours, setVerificationEnCours] = useState(false);
+  const intervalRef = useRef(null);
+
+  // Sondage automatique en arrière-plan dès qu'une transaction existe :
+  // dès que le statut passe à "validee" (webhook KKiaPay reçu, ou admin ayant
+  // validé un paiement manuel), on redirige tout seul vers le rapport.
+  useEffect(() => {
+    if (etat !== 'kkiapay' && etat !== 'manuel') return undefined;
+
+    async function verifier() {
+      try {
+        const res = await fetch(`/api/payment/status?sessionId=${sessionId}`);
+        if (!res.ok) return;
+        const { statut } = await res.json();
+        if (statut === 'validee') {
+          clearInterval(intervalRef.current);
+          router.push(`/rapport/${sessionId}`);
+        }
+      } catch {
+        // silencieux : on retentera au prochain intervalle
+      }
+    }
+
+    verifier(); // premier essai immédiat
+    intervalRef.current = setInterval(verifier, 8000);
+    return () => clearInterval(intervalRef.current);
+  }, [etat, sessionId, router]);
 
   async function handleDebloquer() {
     setEtat('chargement');
@@ -31,6 +64,20 @@ export default function PaywallTeaser({ sessionId }) {
       setEtat(data.provider === 'kkiapay' ? 'kkiapay' : 'manuel');
     } catch {
       setEtat('erreur');
+    }
+  }
+
+  async function handleVerifierMaintenant() {
+    setVerificationEnCours(true);
+    try {
+      const res = await fetch(`/api/payment/status?sessionId=${sessionId}`);
+      const { statut } = await res.json();
+      if (statut === 'validee') {
+        router.push(`/rapport/${sessionId}`);
+        return;
+      }
+    } finally {
+      setVerificationEnCours(false);
     }
   }
 
@@ -78,6 +125,10 @@ export default function PaywallTeaser({ sessionId }) {
           >
             Payer {PRIX_AFFICHE_FCFA} FCFA (MTN MoMo / Moov / Wave)
           </button>
+          <p className="mt-3 text-center text-xs text-[#14231C]/50">
+            Une fois le paiement confirmé, vous serez redirigé automatiquement vers votre rapport
+            (quelques secondes).
+          </p>
         </>
       )}
 
@@ -90,8 +141,17 @@ export default function PaywallTeaser({ sessionId }) {
             ))}
           </ol>
           <p className="pt-1 text-xs text-[#14231C]/50">
-            Déblocage {donneesPaiement.delaiValidation}.
+            Déblocage {donneesPaiement.delaiValidation}. Cette page se met à jour toute seule dès
+            que c'est validé — vous pouvez aussi vérifier manuellement :
           </p>
+          <button
+            type="button"
+            onClick={handleVerifierMaintenant}
+            disabled={verificationEnCours}
+            className="mt-2 w-full rounded-lg bg-[#2B3A67] py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {verificationEnCours ? 'Vérification…' : "J'ai payé, vérifier maintenant"}
+          </button>
         </div>
       )}
     </div>
