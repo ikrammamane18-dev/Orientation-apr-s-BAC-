@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import jwt from 'jsonwebtoken';
 import Link from 'next/link';
-import { supabaseAdmin } from '@/lib/supabaseClient';
+import { supabaseAdmin } from '../../../lib/supabaseClient';
 import { BAC_SERIES } from '@/lib/bacSeries';
 import CoefficientsSerieEditor from '@/components/CoefficientsSerieEditor';
 

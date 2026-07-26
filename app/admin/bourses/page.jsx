@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import jwt from 'jsonwebtoken';
 import Link from 'next/link';
-import { supabaseAdmin } from '@/lib/supabaseClient';
+import { supabaseAdmin } from '../../../lib/supabaseClient';
 import BoursesForm from '@/components/BoursesForm';
 
 export default async function AdminBoursesPage() {
