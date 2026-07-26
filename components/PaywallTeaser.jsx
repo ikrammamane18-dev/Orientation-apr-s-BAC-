@@ -9,9 +9,10 @@ export default function PaywallTeaser({ sessionId }) {
         amount: 325,
         key: process.env.NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY,
         api_key: process.env.NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY,
-        sandbox: true,
-        data: sessionId,
-        callback: 'https://orientation-apr-s-bac.vercel.app/api/payment/webhook',
+        sandbox: true, // À passer à false en production
+        data: sessionId, // Transmet le sessionId à Kkiapay
+        callback: `https://orientation-apr-s-bac.vercel.app/api/payment/webhook?sessionId=${sessionId}`,
+        paymentmethods: ['momo', 'celtis'],
       });
     } else {
       alert('Le module de paiement charge encore, veuillez patienter une seconde.');
