@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { supabaseAdmin } from '@/lib/supabaseClient';
 import PrintButton from '@/components/PrintButton';
+import PrivateOrientationCard from '@/components/PrivateOrientationCard';
 
 /**
  * app/rapport/[sessionId]/page.jsx
@@ -9,6 +10,11 @@ import PrintButton from '@/components/PrintButton';
  * jamais par un paramètre d'URL ou un état local qu'un visiteur pourrait
  * manipuler. Si aucune transaction "validee" n'existe pour cette session,
  * on renvoie vers la page de paiement plutôt que d'afficher quoi que ce soit.
+ *
+ * Tout ce qui est calculé pour cette session est affiché ici une fois payé :
+ * moyenne, taux et détail de l'éligibilité bourse (y compris nom/montant/
+ * description de la bourse si configurés en admin), classement complet des
+ * filières avec taux d'admissibilité ET quota indicatif.
  */
 export default async function RapportPage({ params }) {
   const { sessionId } = params;
@@ -26,7 +32,7 @@ export default async function RapportPage({ params }) {
     redirect(`/resultats/${sessionId}`);
   }
 
-  const { moyenne, eligibiliteBourse, filieresCompatibles } = session.resultat_complet;
+  const { moyenne, eligibiliteBourse, filieresCompatibles, afficherOrientationPrivee } = session.resultat_complet;
 
   return (
     <main className="mx-auto min-h-screen max-w-md bg-[#F5F7F2] px-5 pb-16 pt-10 print:bg-white">
@@ -41,6 +47,22 @@ export default async function RapportPage({ params }) {
         <p className="font-serif text-3xl font-bold text-[#0B6E4F]">{eligibiliteBourse.tauxObtention}%</p>
         <p className="text-sm font-medium text-[#0B6E4F]/70">Éligibilité {eligibiliteBourse.niveau}</p>
         <p className="mt-1 text-sm text-[#14231C]/70">{eligibiliteBourse.message}</p>
+
+        {(eligibiliteBourse.nom || eligibiliteBourse.montantFcfa || eligibiliteBourse.description) && (
+          <div className="mt-3 rounded-lg bg-[#0B6E4F]/5 p-3">
+            {eligibiliteBourse.nom && (
+              <p className="text-sm font-semibold text-[#14231C]">{eligibiliteBourse.nom}</p>
+            )}
+            {eligibiliteBourse.montantFcfa && (
+              <p className="text-sm text-[#14231C]/70">
+                Montant indicatif : {eligibiliteBourse.montantFcfa.toLocaleString('fr-FR')} FCFA
+              </p>
+            )}
+            {eligibiliteBourse.description && (
+              <p className="mt-1 text-xs text-[#14231C]/50">{eligibiliteBourse.description}</p>
+            )}
+          </div>
+        )}
       </div>
 
       <h2 className="mt-6 font-serif text-lg font-bold text-[#14231C]">
@@ -58,13 +80,25 @@ export default async function RapportPage({ params }) {
             <p className="text-xs text-[#14231C]/50">
               {filiere.universite} {filiere.etablissement ? `— ${filiere.etablissement}` : ''}
             </p>
+            <div className="mt-1.5 flex gap-3 text-xs text-[#14231C]/40">
+              <span>Seuil indicatif : {filiere.seuilAdmission}/20</span>
+              {filiere.quota_indicatif != null && <span>Quota indicatif : {filiere.quota_indicatif} places</span>}
+            </div>
           </div>
         ))}
+        {filieresCompatibles.length === 0 && (
+          <p className="rounded-xl bg-white p-4 text-center text-sm text-[#14231C]/50 shadow-sm">
+            Aucune filière publique compatible trouvée avec votre série et votre moyenne pour le
+            moment.
+          </p>
+        )}
       </div>
 
       <div className="mt-6">
         <PrintButton />
       </div>
+
+      {afficherOrientationPrivee && <PrivateOrientationCard />}
     </main>
   );
 }
