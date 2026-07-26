@@ -20,8 +20,7 @@ const nextConfig = {
               "img-src 'self' data: blob: https:",
               "font-src 'self' data:",
               "connect-src 'self' https://*.supabase.co https://*.kkiapay.me wss://*.supabase.co",
-              // C'est cette ligne qu'il faut mettre à jour avec le wildcard *.kkiapay.me :
-              "frame-src 'self' https://*.kkiapay.me https://widget-v3.kkiapay.me",
+              "frame-src 'self' https://*.kkiapay.me https://widget.kkiapay.me https://widget-v3.kkiapay.me",
             ].join('; '),
           },
         ],
