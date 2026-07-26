@@ -1,15 +1,17 @@
-// app/api/payment/webhook/route.js
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseClient';
+
+// Empêche Next.js de mettre cette route en cache
+export const dynamic = 'force-dynamic'; 
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const transactionId = searchParams.get('transaction_id');
-  const sessionId = searchParams.get('sessionId') || searchParams.get('data');
+  const sessionId = searchParams.get('sessionId');
 
   if (sessionId) {
-    // 1. Marquer le paiement comme validé dans Supabase
     if (transactionId) {
+      // 1. On enregistre le succès dans Supabase
       await supabaseAdmin.from('transactions').upsert({
         session_id: sessionId,
         transaction_id: transactionId,
@@ -18,11 +20,10 @@ export async function GET(request) {
       }, { onConflict: 'transaction_id' });
     }
 
-    // 2. Rediriger DIRECTEMENT vers la page du rapport complet débloqué
-    return NextResponse.redirect(
-      new URL(`/rapport/${sessionId}?status=success`, request.url)
-    );
+    // 2. On redirige ENFIN vers la page du rapport débloqué
+    return NextResponse.redirect(new URL(`/rapport/${sessionId}`, request.url));
   }
 
+  // Si on n'a pas d'identifiant, on renvoie à l'accueil
   return NextResponse.redirect(new URL('/', request.url));
 }

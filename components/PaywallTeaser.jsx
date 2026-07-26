@@ -10,9 +10,16 @@ export default function PaywallTeaser({ sessionId }) {
         key: process.env.NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY,
         api_key: process.env.NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY,
         sandbox: true, // À passer à false en production
-        data: sessionId, // Transmet le sessionId à Kkiapay
-        callback: `https://orientation-apr-s-bac.vercel.app/api/payment/webhook?sessionId=${sessionId}`,
+        data: sessionId,
         paymentmethods: ['momo', 'celtis'],
+        // LA CORRECTION EST ICI : on utilise une fonction JavaScript
+        callback: function (response) {
+          // On récupère l'ID de la transaction donné par Kkiapay
+          const transactionId = response.transactionId || '';
+          
+          // On force le navigateur à aller vers le webhook de validation
+          window.location.href = `/api/payment/webhook?sessionId=${sessionId}&transaction_id=${transactionId}`;
+        },
       });
     } else {
       alert('Le module de paiement charge encore, veuillez patienter une seconde.');
