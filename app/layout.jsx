@@ -21,6 +21,11 @@ const plexMono = IBM_Plex_Mono({
   display: 'swap',
 });
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
+
 // ⚠️ Remplacez metadataBase par votre nom de domaine réel une fois choisi
 // (nécessaire pour que les images de partage og:image s'affichent correctement
 // sur WhatsApp/Facebook). Ajoutez aussi /public/og-image.png (1200×630px).

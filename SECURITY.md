@@ -23,7 +23,7 @@ reste à faire côté compte/opérationnel (aucune ligne de code ne peut le fair
 | Fuite de la clé Supabase "service role" | Isolée dans `lib/supabaseClient.js`, jamais utilisée dans un composant `'use client'` |
 | Accès direct aux tables sensibles depuis le navigateur | Row Level Security activée sur toutes les tables (voir `database/schema.sql`) ; aucune écriture cliente autorisée par défaut |
 | Clickjacking (site iframé sur un autre site pour piéger un clic) | En-tête `X-Frame-Options: DENY` + `frame-ancestors 'none'` (CSP) |
-| Injection de script / XSS via en-têtes | `Content-Security-Policy` restrictive dans `middleware.js` |
+| Injection de script / XSS via en-têtes | `Content-Security-Policy` restrictive dans `middleware.js` (⚠️ `script-src` autorise `'unsafe-inline'`, requis pour que Next.js puisse exécuter ses propres scripts d'hydratation — une version par nonce, plus stricte, est possible mais plus fragile à maintenir ; React échappe déjà automatiquement le contenu affiché, ce qui couvre la majorité des risques d'injection courants) |
 | Détournement du navigateur (caméra, micro, géoloc) par un script tiers | `Permissions-Policy` désactivée par défaut |
 | Interception réseau (HTTP non chiffré) | `Strict-Transport-Security` (HSTS) dans `next.config.js` |
 | Fuite de la nature du framework (facilite la recherche de failles connues) | `poweredByHeader: false` |
