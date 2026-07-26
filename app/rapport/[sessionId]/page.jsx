@@ -35,6 +35,35 @@ export default async function RapportPage({ params }) {
   const { moyenne, eligibiliteBourse, filieresCompatibles, afficherOrientationPrivee } = session.resultat_complet;
 
   return (
+    // app/rapport/page.jsx ou components/ReportView.jsx
+
+export default function ReportPage({ data }) {
+  // Vos données reçues de Supabase
+  const filieres = data?.filieres || [];
+  const moyenneCandidat = data?.moyenneGénérale || 0;
+
+  // 1. CALCUL DYNAMIQUE DES BOURSES :
+  // On filtre les filières où une bourse existe et où la moyenne du candidat atteint le seuil de la bourse
+  const boursesEligibles = filieres.filter(
+    (filiere) => filiere.bourse_nom && moyenneCandidat >= (filiere.seuil_bourse || filiere.seuil_admission)
+  );
+  
+  const nombreBourses = boursesEligibles.length;
+
+  return (
+    <main className="max-w-4xl mx-auto p-4">
+      {/* 2. AFFICHAGE DU NOMBRE DE BOURSES DANS LERÉSUMÉ */}
+      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-6">
+        <h2 className="font-bold text-emerald-900">Résumé de vos opportunités</h2>
+        <p className="text-sm text-emerald-800 mt-1">
+          Nombre de filières éligibles à une bourse : <strong>{nombreBourses}</strong>
+        </p>
+      </div>
+
+      {/* Liste de vos filières... */}
+    </main>
+  );
+}
     <main className="mx-auto min-h-screen max-w-md bg-[#F5F7F2] px-5 pb-16 pt-10 print:bg-white">
       <h1 className="text-center font-serif text-2xl font-bold text-[#14231C]">
         Votre rapport d'orientation complet
@@ -96,6 +125,50 @@ export default async function RapportPage({ params }) {
 
       <div className="mt-6">
         <PrintButton />
+        {/* ... Votre liste de filières et cartes ci-dessus ... */}
+
+      {/* Bouton de téléchargement PDF existant */}
+      <div className="mt-6 text-center">
+        <button className="bg-gray-900 text-white px-6 py-3 rounded-xl font-semibold">
+          📄 Télécharger le rapport en PDF
+        </button>
+      </div>
+
+      {/* ------------------------------------------------------------- */}
+      {/* COLLEZ L'ENCADRÉ D'ORIENTATION PRIVÉ EXACTEMENT ICI :         */}
+      {/* ------------------------------------------------------------- */}
+      <div className="mt-10 rounded-2xl bg-[#0B6E4F]/10 p-6 text-center border border-[#0B6E4F]/20">
+        <h3 className="text-lg font-bold text-[#0B6E4F]">Besoin d'un accompagnement personnalisé ?</h3>
+        <p className="mt-1 text-sm text-gray-600">
+          Nos conseillers d'orientation vous aident à faire le meilleur choix d'affectation.
+        </p>
+        <div className="mt-4 flex flex-wrap justify-center gap-3">
+          <a
+            href="https://wa.me/22900000000" // Remplacez par votre numéro WhatsApp
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700"
+          >
+            📱 WhatsApp Direct
+          </a>
+          <a
+            href="tel:+22900000000" // Remplacez par votre numéro de téléphone
+            className="inline-flex items-center gap-2 rounded-xl bg-[#0B6E4F] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#08533c]"
+          >
+            📞 Appel Téléphonique
+          </a>
+          <a
+            href="mailto:contact@votre-domaine.com" // Remplacez par votre email
+            className="inline-flex items-center gap-2 rounded-xl bg-gray-800 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-900"
+          >
+            ✉️ Envoyer un Email
+          </a>
+        </div>
+      </div>
+
+    </main> // Fermeture du conteneur principal
+  );
+}
       </div>
 
       {afficherOrientationPrivee && <PrivateOrientationCard />}
