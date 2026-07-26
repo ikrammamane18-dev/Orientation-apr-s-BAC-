@@ -28,20 +28,12 @@ export async function middleware(request) {
     'Content-Security-Policy',
     [
       "default-src 'self'",
-      // 'unsafe-inline' est nécessaire ici : Next.js insère ses propres scripts
-      // d'hydratation inline dans la page (App Router). Sans ça, le CSP bloque
-      // Next.js lui-même — c'est exactement ce qui s'est produit en prod : le
-      // formulaire s'affichait mais plus rien n'était interactif (cliquer sur
-      // une série ne révélait plus les champs de notes), avec des erreurs
-      // "Executing inline script violates CSP" dans la console.
-      // Une alternative plus stricte existe (CSP par nonce, régénéré à chaque
-      // requête) mais demande un cablage précis avec Next.js ; à envisager
-      // plus tard avec un développeur si vous voulez durcir encore ce point.
-      "script-src 'self' 'unsafe-inline' https://cdn.kkiapay.me",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.kkiapay.me https://*.kkiapay.me",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https:",
-      "connect-src 'self' https://api.kkiapay.me " + (process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''),
-      "frame-src https://widget.kkiapay.me",
+      "img-src 'self' data: blob: https:",
+      "connect-src 'self' https://*.kkiapay.me https://api.kkiapay.me wss://*.supabase.co " + (process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''),
+      // LA LIGNE CORRIGÉE : Autorise le sous-domaine v3 et le wildcard kkiapay.me
+      "frame-src 'self' https://*.kkiapay.me https://widget.kkiapay.me https://widget-v3.kkiapay.me",
       "frame-ancestors 'none'",
     ].join('; ')
   );
