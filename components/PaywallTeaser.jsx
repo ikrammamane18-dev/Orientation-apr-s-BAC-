@@ -1,23 +1,44 @@
 'use client';
 
+import { useEffect } from 'react';
 import Script from 'next/script';
 
 export default function PaywallTeaser({ sessionId }) {
+  
+  // 1. L'ÉCOUTEUR D'ÉVÉNEMENT : Il guette le succès du paiement
+  useEffect(() => {
+    const onPaymentSuccess = (response) => {
+      // Dès que Kkiapay annonce le succès, on récupère l'ID de transaction
+      const transactionId = response.transactionId || '';
+      
+      // On force immédiatement le navigateur à charger la route de validation
+      window.location.href = `/api/payment/webhook?sessionId=${sessionId}&transaction_id=${transactionId}`;
+    };
+
+    // On vérifie toutes les demi-secondes si le script Kkiapay est bien chargé
+    const checkKkiapay = setInterval(() => {
+      if (typeof window !== 'undefined' && typeof window.addKkiapayListener === 'function') {
+        // On attache l'écouteur de succès
+        window.addKkiapayListener('success', onPaymentSuccess);
+        clearInterval(checkKkiapay); // On arrête de vérifier
+      }
+    }, 500);
+
+    // Nettoyage si le composant est démonté
+    return () => clearInterval(checkKkiapay);
+  }, [sessionId]);
+
+  // 2. LA FONCTION D'OUVERTURE DU WIDGET
   function handlePayment() {
     if (typeof window !== 'undefined' && typeof window.openKkiapayWidget === 'function') {
-      
-      // On crée l'URL exacte de redirection (absolue)
-      const webhookUrl = `${window.location.origin}/api/payment/webhook?sessionId=${sessionId}`;
-
       window.openKkiapayWidget({
         amount: 325,
         key: process.env.NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY,
         api_key: process.env.NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY,
         sandbox: true, // À passer à false en production
         data: sessionId,
-        paymentmethods: ['momo', 'celtis'],
-        // ON PASSE L'URL EN STRING (texte), Kkiapay rajoutera le transaction_id automatiquement
-        callback: webhookUrl, 
+        paymentmethods: ['momo', 'celtis']
+        // ⚠️ PLUS DE "callback" ICI ! L'écouteur (en haut) s'en occupe
       });
     } else {
       alert('Le module de paiement charge encore, veuillez patienter une seconde.');
