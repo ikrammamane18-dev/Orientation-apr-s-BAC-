@@ -1,57 +1,24 @@
 'use client';
 
-import { useEffect } from 'react';
 import Script from 'next/script';
 
 export default function PaywallTeaser({ sessionId }) {
   
-  useEffect(() => {
-    // LA MÉTHODE INFAILLIBLE : On écoute directement les signaux "bruts" du navigateur
-    const handleIframeMessage = (event) => {
-      const data = event.data;
-
-      // 1. Si le signal est un objet (Format classique de Kkiapay)
-      if (data && typeof data === 'object') {
-        // Dès qu'on voit le mot 'success' venant du widget Kkiapay
-        if (data.name === 'success' || data.name === 'payment_success' || data.type === 'SUCCESS') {
-          const transactionId = data.transactionId || data.id || '';
-          // On force la redirection !
-          window.location.href = `/api/payment/webhook?sessionId=${sessionId}&transaction_id=${transactionId}`;
-        }
-      }
-      
-      // 2. Si le signal est du texte JSON (Format alternatif)
-      if (data && typeof data === 'string') {
-        try {
-          const parsed = JSON.parse(data);
-          if (parsed.name === 'success' || parsed.name === 'payment_success') {
-            const transactionId = parsed.transactionId || parsed.id || '';
-            // On force la redirection !
-            window.location.href = `/api/payment/webhook?sessionId=${sessionId}&transaction_id=${transactionId}`;
-          }
-        } catch (e) {
-          // On ignore les messages qui ne nous concernent pas
-        }
-      }
-    };
-
-    // On branche notre écouteur directement sur le navigateur
-    window.addEventListener('message', handleIframeMessage);
-
-    // On débranche l'écouteur si l'utilisateur quitte la page (nettoyage)
-    return () => window.removeEventListener('message', handleIframeMessage);
-  }, [sessionId]);
-
-
   function handlePayment() {
     if (typeof window !== 'undefined' && typeof window.openKkiapayWidget === 'function') {
       window.openKkiapayWidget({
         amount: 325,
         key: process.env.NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY,
         api_key: process.env.NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY,
-        sandbox: true, // À passer à false en production
+        sandbox: true,
         data: sessionId,
-        paymentmethods: ['momo', 'celtis']
+        paymentmethods: ['momo', 'celtis'],
+        // C'EST ICI LA CLÉ : Kkiapay renvoie la réponse directement dans cette fonction de succès
+        callback: (response) => {
+          const transactionId = response.transactionId || response.id || 'succes_force';
+          // On force la redirection avec l'ID en clair dans l'URL
+          window.location.href = `/api/payment/webhook?sessionId=${sessionId}&transaction_id=${transactionId}`;
+        }
       });
     } else {
       alert('Le module de paiement charge encore, veuillez patienter une seconde.');
