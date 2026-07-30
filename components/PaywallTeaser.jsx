@@ -6,6 +6,10 @@ export default function PaywallTeaser({ sessionId }) {
   
   function handlePayment() {
     if (typeof window !== 'undefined' && typeof window.openKkiapayWidget === 'function') {
+      
+      // On construit l'URL de redirection absolue vers notre API
+      const callbackUrl = `${window.location.origin}/api/payment/webhook?sessionId=${sessionId}`;
+
       window.openKkiapayWidget({
         amount: 325,
         key: process.env.NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY,
@@ -13,12 +17,8 @@ export default function PaywallTeaser({ sessionId }) {
         sandbox: true,
         data: sessionId,
         paymentmethods: ['momo', 'celtis'],
-        // C'EST ICI LA CLÉ : Kkiapay renvoie la réponse directement dans cette fonction de succès
-        callback: (response) => {
-          const transactionId = response.transactionId || response.id || 'succes_force';
-          // On force la redirection avec l'ID en clair dans l'URL
-          window.location.href = `/api/payment/webhook?sessionId=${sessionId}&transaction_id=${transactionId}`;
-        }
+        // ON PASSE UNE URL EN TEXTE PUR (pas de fonction, donc plus de DataCloneError)
+        callback: callbackUrl,
       });
     } else {
       alert('Le module de paiement charge encore, veuillez patienter une seconde.');
