@@ -5,30 +5,44 @@ import Script from 'next/script';
 
 export default function PaywallTeaser({ sessionId }) {
   
-  // 1. L'ÉCOUTEUR D'ÉVÉNEMENT : Il guette le succès du paiement
   useEffect(() => {
-    const onPaymentSuccess = (response) => {
-      // Dès que Kkiapay annonce le succès, on récupère l'ID de transaction
-      const transactionId = response.transactionId || '';
+    // LA MÉTHODE INFAILLIBLE : On écoute directement les signaux "bruts" du navigateur
+    const handleIframeMessage = (event) => {
+      const data = event.data;
+
+      // 1. Si le signal est un objet (Format classique de Kkiapay)
+      if (data && typeof data === 'object') {
+        // Dès qu'on voit le mot 'success' venant du widget Kkiapay
+        if (data.name === 'success' || data.name === 'payment_success' || data.type === 'SUCCESS') {
+          const transactionId = data.transactionId || data.id || '';
+          // On force la redirection !
+          window.location.href = `/api/payment/webhook?sessionId=${sessionId}&transaction_id=${transactionId}`;
+        }
+      }
       
-      // On force immédiatement le navigateur à charger la route de validation
-      window.location.href = `/api/payment/webhook?sessionId=${sessionId}&transaction_id=${transactionId}`;
+      // 2. Si le signal est du texte JSON (Format alternatif)
+      if (data && typeof data === 'string') {
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.name === 'success' || parsed.name === 'payment_success') {
+            const transactionId = parsed.transactionId || parsed.id || '';
+            // On force la redirection !
+            window.location.href = `/api/payment/webhook?sessionId=${sessionId}&transaction_id=${transactionId}`;
+          }
+        } catch (e) {
+          // On ignore les messages qui ne nous concernent pas
+        }
+      }
     };
 
-    // On vérifie toutes les demi-secondes si le script Kkiapay est bien chargé
-    const checkKkiapay = setInterval(() => {
-      if (typeof window !== 'undefined' && typeof window.addKkiapayListener === 'function') {
-        // On attache l'écouteur de succès
-        window.addKkiapayListener('success', onPaymentSuccess);
-        clearInterval(checkKkiapay); // On arrête de vérifier
-      }
-    }, 500);
+    // On branche notre écouteur directement sur le navigateur
+    window.addEventListener('message', handleIframeMessage);
 
-    // Nettoyage si le composant est démonté
-    return () => clearInterval(checkKkiapay);
+    // On débranche l'écouteur si l'utilisateur quitte la page (nettoyage)
+    return () => window.removeEventListener('message', handleIframeMessage);
   }, [sessionId]);
 
-  // 2. LA FONCTION D'OUVERTURE DU WIDGET
+
   function handlePayment() {
     if (typeof window !== 'undefined' && typeof window.openKkiapayWidget === 'function') {
       window.openKkiapayWidget({
@@ -38,7 +52,6 @@ export default function PaywallTeaser({ sessionId }) {
         sandbox: true, // À passer à false en production
         data: sessionId,
         paymentmethods: ['momo', 'celtis']
-        // ⚠️ PLUS DE "callback" ICI ! L'écouteur (en haut) s'en occupe
       });
     } else {
       alert('Le module de paiement charge encore, veuillez patienter une seconde.');
