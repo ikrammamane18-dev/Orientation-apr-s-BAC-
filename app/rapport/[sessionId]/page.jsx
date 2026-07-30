@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { supabaseAdmin } from '@/lib/supabaseClient';
 import PrintButton from '@/components/PrintButton';
-
+export const dynamic = 'force-dynamic';
 /**
  * app/rapport/[sessionId]/page.jsx
  */
