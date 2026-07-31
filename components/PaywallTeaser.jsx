@@ -1,48 +1,147 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Script from 'next/script';
 
-export default function PaywallTeaser({ sessionId }) {
-  
-  function handlePayment() {
-    if (typeof window !== 'undefined' && typeof window.openKkiapayWidget === 'function') {
-      
-      // On construit l'URL de redirection absolue vers notre API
-      const callbackUrl = `${window.location.origin}/api/payment/webhook?sessionId=${sessionId}`;
+const PRIX_AFFICHE_FCFA = 325; // affichage uniquement — le vrai montant facturé vient toujours du serveur (lib/payment.js)
 
-      window.openKkiapayWidget({
-        amount: 325,
-        key: process.env.NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY,
-        api_key: process.env.NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY,
-        sandbox: true,
-        data: sessionId,
-        paymentmethods: ['momo', 'celtis'],
-        // ON PASSE UNE URL EN TEXTE PUR (pas de fonction, donc plus de DataCloneError)
-        callback: callbackUrl,
+export default function PaywallTeaser({ sessionId }) {
+  const router = useRouter();
+  const [etat, setEtat] = useState('idle'); // idle | chargement | kkiapay | manuel | erreur
+  const [donneesPaiement, setDonneesPaiement] = useState(null);
+  const [verificationEnCours, setVerificationEnCours] = useState(false);
+  const intervalRef = useRef(null);
+
+  // Sondage automatique : dès que le statut passe à "validee" (webhook KKiaPay
+  // reçu, ou admin ayant validé un paiement manuel), on redirige tout seul.
+  useEffect(() => {
+    if (etat !== 'kkiapay' && etat !== 'manuel') return undefined;
+
+    async function verifier() {
+      try {
+        const res = await fetch(`/api/payment/status?sessionId=${sessionId}`);
+        if (!res.ok) return;
+        const { statut } = await res.json();
+        if (statut === 'validee') {
+          clearInterval(intervalRef.current);
+          router.push(`/rapport/${sessionId}`);
+        }
+      } catch {
+        // silencieux : on retentera au prochain intervalle
+      }
+    }
+
+    verifier();
+    intervalRef.current = setInterval(verifier, 8000);
+    return () => clearInterval(intervalRef.current);
+  }, [etat, sessionId, router]);
+
+  async function handleDebloquer() {
+    setEtat('chargement');
+    try {
+      const res = await fetch('/api/payment/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
       });
-    } else {
-      alert('Le module de paiement charge encore, veuillez patienter une seconde.');
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setDonneesPaiement(data);
+      setEtat(data.provider === 'kkiapay' ? 'kkiapay' : 'manuel');
+    } catch {
+      setEtat('erreur');
+    }
+  }
+
+  async function handleVerifierMaintenant() {
+    setVerificationEnCours(true);
+    try {
+      const res = await fetch(`/api/payment/status?sessionId=${sessionId}`);
+      const { statut } = await res.json();
+      if (statut === 'validee') {
+        router.push(`/rapport/${sessionId}`);
+        return;
+      }
+    } finally {
+      setVerificationEnCours(false);
     }
   }
 
   return (
-    <>
-      <Script src="https://cdn.kkiapay.me/k.js" strategy="afterInteractive" />
+    <div className="rounded-2xl bg-white p-5 shadow-md">
+      <div className="mb-4 flex items-baseline justify-center gap-1 rounded-xl bg-[#0B6E4F]/5 py-4">
+        <span className="font-serif text-3xl font-bold text-[#0B6E4F]">{PRIX_AFFICHE_FCFA}</span>
+        <span className="text-sm font-medium text-[#0B6E4F]/70">FCFA · rapport complet</span>
+      </div>
 
-      <div className="rounded-2xl bg-white p-5 text-center shadow-sm">
-        <p className="text-sm text-[#14231C]/60">Accès complet à votre rapport d'orientation</p>
-        <p className="mt-2 font-serif text-3xl font-bold text-[#0B6E4F]">
-          325 <span className="text-sm font-normal">FCFA</span>
-        </p>
-
+      {etat === 'idle' && (
         <button
           type="button"
-          onClick={handlePayment}
-          className="mt-4 w-full rounded-xl bg-[#0B6E4F] py-3.5 text-base font-semibold text-white shadow-lg shadow-[#0B6E4F]/20 active:scale-95 transition-transform"
+          onClick={handleDebloquer}
+          className="w-full rounded-xl bg-[#E8A33D] py-4 text-base font-semibold text-[#14231C] shadow-lg shadow-[#E8A33D]/30"
         >
-          Payer 325 FCFA pour débloquer
+          Débloquer mon rapport complet
         </button>
-      </div>
-    </>
+      )}
+
+      {etat === 'chargement' && (
+        <p className="text-center text-sm text-[#14231C]/60">Préparation du paiement…</p>
+      )}
+
+      {etat === 'erreur' && (
+        <p className="text-center text-sm text-[#D65A46]">
+          Une erreur est survenue. Merci de réessayer.
+        </p>
+      )}
+
+      {etat === 'kkiapay' && donneesPaiement && (
+        <>
+          <Script src="https://cdn.kkiapay.me/k.js" strategy="afterInteractive" />
+          <button
+            type="button"
+            onClick={() =>
+              window.openKkiapayWidget({
+                amount: donneesPaiement.amount,
+                key: donneesPaiement.publicKey,
+                sandbox: donneesPaiement.sandbox,
+                data: donneesPaiement.reference,
+                callback: `${window.location.origin}/resultats/${sessionId}`,
+              })
+            }
+            className="w-full rounded-xl bg-[#0B6E4F] py-4 text-base font-semibold text-white shadow-lg"
+          >
+            Payer {PRIX_AFFICHE_FCFA} FCFA (MTN MoMo / Moov / Wave)
+          </button>
+          <p className="mt-3 text-center text-xs text-[#14231C]/50">
+            Une fois le paiement confirmé, vous serez redirigé automatiquement vers votre rapport
+            (quelques secondes).
+          </p>
+        </>
+      )}
+
+      {etat === 'manuel' && donneesPaiement && (
+        <div className="space-y-2 rounded-xl bg-[#F5F7F2] p-4 text-sm text-[#14231C]">
+          <p className="font-semibold">Comment payer :</p>
+          <ol className="list-decimal space-y-1 pl-4">
+            {donneesPaiement.instructions.map((etape, i) => (
+              <li key={i}>{etape}</li>
+            ))}
+          </ol>
+          <p className="pt-1 text-xs text-[#14231C]/50">
+            Déblocage {donneesPaiement.delaiValidation}. Cette page se met à jour toute seule dès
+            que c'est validé — vous pouvez aussi vérifier manuellement :
+          </p>
+          <button
+            type="button"
+            onClick={handleVerifierMaintenant}
+            disabled={verificationEnCours}
+            className="mt-2 w-full rounded-lg bg-[#2B3A67] py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {verificationEnCours ? 'Vérification…' : "J'ai payé, vérifier maintenant"}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
