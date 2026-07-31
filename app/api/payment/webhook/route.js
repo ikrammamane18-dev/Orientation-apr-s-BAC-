@@ -5,6 +5,12 @@ import { verifierSecretWebhookKkiapay } from '@/lib/payment';
 export async function POST(request) {
   const secretRecu = request.headers.get('x-kkiapay-secret');
 
+  console.log('Debug secret webhook :', {
+    recu: secretRecu ? `${secretRecu.length} caractères` : 'ABSENT',
+    attenduDefini: Boolean(process.env.KKIAPAY_SECRET),
+    attenduLongueur: process.env.KKIAPAY_SECRET?.length ?? 0,
+  });
+
   let secretValide = false;
   try {
     secretValide = verifierSecretWebhookKkiapay(secretRecu);
