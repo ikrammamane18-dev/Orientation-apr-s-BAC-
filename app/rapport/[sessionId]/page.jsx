@@ -28,11 +28,11 @@ export default async function RapportPage({ params }) {
       </h1>
 
       <div className="mt-6 rounded-2xl bg-white p-5 shadow-sm">
-        <p className="text-sm text-[#14231C]/60">Moyenne g¨¦n¨¦rale coefficient¨¦e</p>
+        <p className="text-sm text-[#14231C]/60">Moyenne générale coefficientée</p>
         <p className="font-serif text-3xl font-bold text-[#14231C]">{moyenne}/20</p>
-        <p className="mt-3 text-sm text-[#14231C]/60">Chances d'obtenir une bourse d'?tat</p>
+        <p className="mt-3 text-sm text-[#14231C]/60">Chances d'obtenir une bourse d'État</p>
         <p className="font-serif text-3xl font-bold text-[#0B6E4F]">{eligibiliteBourse.tauxObtention}%</p>
-        <p className="text-sm font-medium text-[#0B6E4F]/70">?ligibilit¨¦ {eligibiliteBourse.niveau}</p>
+        <p className="text-sm font-medium text-[#0B6E4F]/70">Éligibilité {eligibiliteBourse.niveau}</p>
         <p className="mt-1 text-sm text-[#14231C]/70">{eligibiliteBourse.message}</p>
 
         {(eligibiliteBourse.nom || eligibiliteBourse.montantFcfa || eligibiliteBourse.description) && (
@@ -53,7 +53,7 @@ export default async function RapportPage({ params }) {
       </div>
 
       <h2 className="mt-6 font-serif text-lg font-bold text-[#14231C]">
-        Fili¨¨res publiques class¨¦es par compatibilit¨¦
+        Filières publiques classées par compatibilité
       </h2>
       <div className="mt-3 space-y-2">
         {filieresCompatibles.map((filiere) => (
@@ -65,7 +65,7 @@ export default async function RapportPage({ params }) {
               </span>
             </div>
             <p className="text-xs text-[#14231C]/50">
-              {filiere.universite} {filiere.etablissement ? `¡ª ${filiere.etablissement}` : ''}
+              {filiere.universite} {filiere.etablissement ? `— ${filiere.etablissement}` : ''}
             </p>
             <div className="mt-1.5 flex gap-3 text-xs text-[#14231C]/40">
               <span>Seuil indicatif : {filiere.seuilAdmission}/20</span>
@@ -75,7 +75,7 @@ export default async function RapportPage({ params }) {
         ))}
         {filieresCompatibles.length === 0 && (
           <p className="rounded-xl bg-white p-4 text-center text-sm text-[#14231C]/50 shadow-sm">
-            Aucune fili¨¨re publique compatible trouv¨¦e avec votre s¨¦rie et votre moyenne pour le
+            Aucune filière publique compatible trouvée avec votre série et votre moyenne pour le
             moment.
           </p>
         )}
