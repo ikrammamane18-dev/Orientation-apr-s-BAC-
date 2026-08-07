@@ -4,26 +4,29 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
 
-const PRIX_AFFICHE_FCFA = 325; // affichage uniquement — le vrai montant facturé vient toujours du serveur (lib/payment.js)
+const PRIX_AFFICHE_FCFA = 325;
 
 export default function PaywallTeaser({ sessionId }) {
   const router = useRouter();
-  const [etat, setEtat] = useState('idle'); // idle | chargement | kkiapay | manuel | erreur
+  const [etat, setEtat] = useState('idle');
   const [donneesPaiement, setDonneesPaiement] = useState(null);
   const [verificationEnCours, setVerificationEnCours] = useState(false);
   const intervalRef = useRef(null);
 
-  // Sondage automatique : dès que le statut passe à "validee" (webhook KKiaPay
-  // reçu, ou admin ayant validé un paiement manuel), on redirige tout seul.
+  // Vérifie le statut au chargement ET en continu tant qu'un paiement est en
+  // cours. Le "au chargement" est essentiel : après le paiement, KKiaPay
+  // ramène le navigateur ici via une redirection complète (callback), qui
+  // remonte ce composant à zéro — sans ce premier appel immédiat, rien ne
+  // détecterait jamais qu'on revient d'un paiement déjà réussi.
   useEffect(() => {
-    if (etat !== 'kkiapay' && etat !== 'manuel') return undefined;
+    let annule = false;
 
     async function verifier() {
       try {
         const res = await fetch(`/api/payment/status?sessionId=${sessionId}`);
         if (!res.ok) return;
         const { statut } = await res.json();
-        if (statut === 'validee') {
+        if (statut === 'validee' && !annule) {
           clearInterval(intervalRef.current);
           router.push(`/rapport/${sessionId}`);
         }
@@ -32,9 +35,16 @@ export default function PaywallTeaser({ sessionId }) {
       }
     }
 
-    verifier();
-    intervalRef.current = setInterval(verifier, 8000);
-    return () => clearInterval(intervalRef.current);
+    verifier(); // vérification immédiate, à chaque montage du composant
+
+    if (etat === 'kkiapay' || etat === 'manuel') {
+      intervalRef.current = setInterval(verifier, 8000);
+    }
+
+    return () => {
+      annule = true;
+      clearInterval(intervalRef.current);
+    };
   }, [etat, sessionId, router]);
 
   async function handleDebloquer() {
