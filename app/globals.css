@@ -5,3 +5,46 @@
 html {
   -webkit-tap-highlight-color: transparent; /* évite le flash gris au tap sur mobile */
 }
+/* --- Scroll Reveal --- */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  will-change: opacity, transform;
+}
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Flottement léger (hero) --- */
+@keyframes float-doux {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.float-doux {
+  animation: float-doux 4s ease-in-out infinite;
+}
+
+/* --- Ripple effect (boutons) --- */
+.ripple-effect {
+  position: absolute;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(0);
+  animation: ripple-anim 0.6s ease-out;
+  pointer-events: none;
+}
+@keyframes ripple-anim {
+  to { transform: scale(2.5); opacity: 0; }
+}
+
+/* --- Accessibilité : neutralise TOUTES les animations/transitions --- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal { opacity: 1; transform: none; }
+}
