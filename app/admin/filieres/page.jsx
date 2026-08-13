@@ -20,7 +20,7 @@ export default async function AdminFilieresPage() {
     .order('universite');
 
   return (
-    <main className="mx-auto min-h-screen max-w-2xl bg-[#F5F7F2] px-5 pb-16 pt-10">
+    <main className="mx-auto min-h-screen max-w-2xl px-5 pb-16 pt-10">
       <Link href="/admin" className="text-sm text-[#14231C]/50">
         ← Retour au dashboard
       </Link>
