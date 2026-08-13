@@ -34,7 +34,7 @@ export default async function AdminPage() {
   ]);
 
   return (
-    <main className="mx-auto min-h-screen max-w-2xl bg-[#F5F7F2] px-5 pb-16 pt-10">
+    <main className="mx-auto min-h-screen max-w-2xl px-5 pb-16 pt-10">
       <h1 className="font-serif text-2xl font-bold text-[#14231C]">Dashboard Admin</h1>
 
       <div className="mt-4 flex flex-wrap gap-2">
