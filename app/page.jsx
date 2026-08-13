@@ -11,7 +11,7 @@ const POINTS_CLES = [
 
 export default function AccueilPage() {
   return (
-    <main className="mx-auto min-h-screen max-w-md bg-[#F5F7F2] px-5 pb-10 pt-14">
+    <main className="mx-auto min-h-screen max-w-md px-5 pb-10 pt-14">
       <Reveal
         as="div"
         delay={0}
