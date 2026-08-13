@@ -1,7 +1,7 @@
 export default function AmbientBackground() {
   return (
     <div 
-      className="fixed inset-0 -z-10 pointer-events-none overflow-hidden bg-[#F5F7F2] print:hidden" 
+      className="fixed inset-0 -z-10 pointer-events-none overflow-hidden print:hidden" 
       aria-hidden="true"
     >
       <div
