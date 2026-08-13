@@ -1,6 +1,13 @@
 import { Fraunces, Inter, IBM_Plex_Mono } from 'next/font/google';
+import AmbientBackground from '@/components/AmbientBackground';
 import SiteChrome from '@/components/SiteChrome';
 import './globals.css';
+
+<body className={`${fraunces.variable} ${inter.variable} ${plexMono.variable} min-h-screen font-sans text-[#14231C] antialiased`}>
+  <AmbientBackground />
+  <SiteChrome>{children}</SiteChrome>
+</body>
+
 
 const fraunces = Fraunces({
   subsets: ['latin'],
