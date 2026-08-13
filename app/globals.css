@@ -48,3 +48,16 @@ html {
   }
   .reveal { opacity: 1; transform: none; }
 }
+/* --- Arrière-plan ambiant --- */
+@keyframes derive-lente-1 {
+  0%, 100% { transform: translate(-10%, -10%) scale(1); }
+  50% { transform: translate(5%, 10%) scale(1.15); }
+}
+@keyframes derive-lente-2 {
+  0%, 100% { transform: translate(10%, 5%) scale(1); }
+  50% { transform: translate(-8%, -12%) scale(1.1); }
+}
+@keyframes derive-lente-3 {
+  0%, 100% { transform: translate(0%, 0%) scale(1); }
+  50% { transform: translate(-6%, 8%) scale(1.2); }
+}
