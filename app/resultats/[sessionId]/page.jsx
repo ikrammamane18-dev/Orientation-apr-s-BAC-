@@ -69,11 +69,9 @@ export default async function ResultatsPage({ params }) {
         <PaywallTeaser sessionId={sessionId} />
       </Reveal>
 
-      {afficherOrientationPrivee && (
-        <Reveal as="div" delay={500}>
+      {afficherOrientationPrivee && 
           <PrivateOrientationCard />
-        </Reveal>
-      )}
+      }
     </main>
   );
 }
