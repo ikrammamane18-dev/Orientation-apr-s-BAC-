@@ -1,6 +1,6 @@
 export default function AmbientBackground() {
   return (
-    <div className="fixed inset-0 z-0 overflow-hidden bg-[#F5F7F2]" aria-hidden="true">
+    <div className="fixed inset-0 z-0 overflow-hidden bg-[#F5F7F2] print:hidden" aria-hidden="true">
       <div
         className="absolute -top-1/4 -left-1/4 h-[60vw] w-[60vw] max-w-[600px] max-h-[600px] rounded-full opacity-[0.10] blur-3xl"
         style={{ background: '#0B6E4F', animation: 'derive-lente-1 22s ease-in-out infinite' }}
