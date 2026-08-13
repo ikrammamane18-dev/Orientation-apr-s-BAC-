@@ -83,7 +83,7 @@ export default function BacOrientationForm() {
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-[#F5F7F2] px-5 pb-28 pt-8">
+    <div className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-8">
       {/* En-tête / logo — zone cachée de l'Easter Egg admin */}
       <header className="mb-8 flex flex-col items-center select-none">
         <button
