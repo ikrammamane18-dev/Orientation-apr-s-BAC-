@@ -8,7 +8,7 @@ import { useScrollReveal } from '@/hooks/useScrollReveal';
  *   <Reveal delay={200}>Contenu</Reveal>
  * "as" permet de choisir la balise (section, h1, div...).
  */
-export default function Reveal({ children, delay = 0, className = '', as: Tag = 'div' }) {
+export default function Reveal({ children, delay = 0, className = '', as: Tag = 'div', ...rest }) {
   const { ref, isVisible } = useScrollReveal();
 
   return (
@@ -16,6 +16,7 @@ export default function Reveal({ children, delay = 0, className = '', as: Tag = 
       ref={ref}
       className={`reveal ${isVisible ? 'reveal-visible' : ''} ${className}`}
       style={{ transitionDelay: isVisible ? `${delay}ms` : '0ms' }}
+      {...rest}
     >
       {children}
     </Tag>
