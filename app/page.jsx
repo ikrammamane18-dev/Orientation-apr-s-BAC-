@@ -1,7 +1,6 @@
-import Link from 'next/link';
 import { LISTE_SERIES } from '@/lib/bacSeries';
 import Reveal from '@/components/Reveal';
-import { creerRipple } from '@/lib/ripple';
+import RippleLink from '@/components/RippleLink';
 
 const POINTS_CLES = [
   { texte: 'Basé sur les critères réels du MESRS' },
@@ -24,14 +23,13 @@ export default function AccueilPage() {
       {/* Bandeau de repère — évite une promesse invérifiable ("n°1") tant
           qu'aucune donnée ne l'appuie ; à remplacer par un vrai chiffre
           (ex: "1200+ bacheliers accompagnés") dès que vous l'aurez. */}
-      <Reveal
-        as="div"
-        delay={80}
-        className="mx-auto mb-4 flex w-fit items-center gap-1.5 rounded-full bg-[#E8A33D]/15 px-3 py-1 text-xs font-semibold text-[#E8A33D]"
-      >
-        <span aria-hidden>🇧🇯</span> Fait pour les bacheliers du Bénin
-      </Reveal>
-
+     <RippleLink
+  href="/test"
+  delay={320}
+  className="mt-8 block w-full rounded-xl bg-[#0B6E4F] py-4 text-center text-base font-semibold text-white shadow-lg shadow-[#0B6E4F]/20"
+>
+  Faire le test gratuitement
+</RippleLink>
       <Reveal
         as="h1"
         delay={160}
