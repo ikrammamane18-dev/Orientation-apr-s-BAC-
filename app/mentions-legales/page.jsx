@@ -1,6 +1,6 @@
 export default function MentionsLegalesPage() {
   return (
-    <main className="mx-auto min-h-screen max-w-md bg-[#F5F7F2] px-5 pb-16 pt-10">
+    <main className="mx-auto min-h-screen max-w-md px-5 pb-16 pt-10">
       <h1 className="font-serif text-2xl font-bold text-[#14231C]">Mentions légales</h1>
 
       <div className="mt-3 rounded-xl bg-[#E8A33D]/10 p-3 text-xs text-[#14231C]/70">
