@@ -23,13 +23,14 @@ export default function AccueilPage() {
       {/* Bandeau de repère — évite une promesse invérifiable ("n°1") tant
           qu'aucune donnée ne l'appuie ; à remplacer par un vrai chiffre
           (ex: "1200+ bacheliers accompagnés") dès que vous l'aurez. */}
-     <RippleLink
-  href="/test"
-  delay={320}
-  className="mt-8 block w-full rounded-xl bg-[#0B6E4F] py-4 text-center text-base font-semibold text-white shadow-lg shadow-[#0B6E4F]/20"
->
-  Faire le test gratuitement
-</RippleLink>
+      <Reveal
+        as="div"
+        delay={80}
+        className="mx-auto mb-4 flex w-fit items-center gap-1.5 rounded-full bg-[#E8A33D]/15 px-3 py-1 text-xs font-semibold text-[#E8A33D]"
+      >
+        <span aria-hidden>🇧🇯</span> Fait pour les bacheliers du Bénin
+      </Reveal>
+
       <Reveal
         as="h1"
         delay={160}
@@ -46,15 +47,13 @@ export default function AccueilPage() {
         acceptées.
       </Reveal>
 
-      <Reveal
-        as={Link}
+      <RippleLink
         href="/test"
-        onMouseDown={creerRipple}
         delay={320}
-        className="relative overflow-hidden mt-8 block w-full rounded-xl bg-[#0B6E4F] py-4 text-center text-base font-semibold text-white shadow-lg shadow-[#0B6E4F]/20"
+        className="mt-8 block w-full rounded-xl bg-[#0B6E4F] py-4 text-center text-base font-semibold text-white shadow-lg shadow-[#0B6E4F]/20"
       >
         Faire le test gratuitement
-      </Reveal>
+      </RippleLink>
 
       {/* Nombre de séries calculé depuis lib/bacSeries.js (pas un chiffre en
           dur) : s'il change un jour (ajout d'une série), ce bandeau reste
@@ -82,12 +81,7 @@ export default function AccueilPage() {
 
       <ul className="mt-6 space-y-3 text-sm text-[#14231C]/70">
         {POINTS_CLES.map((point, index) => (
-          <Reveal
-            key={point.texte}
-            as="li"
-            delay={480 + index * 90}
-            className="flex gap-2"
-          >
+          <Reveal key={point.texte} as="li" delay={480 + index * 90} className="flex gap-2">
             <span aria-hidden>✅</span> {point.texte}
           </Reveal>
         ))}
