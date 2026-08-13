@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Reveal from '@/components/Reveal';
 
 const NUMERO_WHATSAPP = '2290153731434'; // format international sans "+"
 const NUMERO_TEL = '+2290153731434';
@@ -15,6 +16,10 @@ const MESSAGE_WHATSAPP =
  * S'affiche quand scoringEngine.doitAfficherOrientationPrivee(...) renvoie true,
  * ou si l'étudiant choisit explicitement l'option "orientation privé".
  *
+ * L'animation d'apparition est gérée ICI (via <Reveal>), pas par les pages
+ * qui l'utilisent — évite d'avoir à y penser à chaque nouvel endroit où ce
+ * composant est inséré.
+ *
  * Props :
  *  - prenom?: string — pour personnaliser légèrement le message (optionnel)
  */
@@ -24,7 +29,8 @@ export default function PrivateOrientationCard({ prenom }) {
   const lienWhatsApp = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(MESSAGE_WHATSAPP)}`;
 
   return (
-    <section
+    <Reveal
+      as="section"
       aria-labelledby="orientation-privee-titre"
       className="mt-6 overflow-hidden rounded-2xl border-2 border-[#E8A33D] bg-gradient-to-b from-[#E8A33D]/10 to-white p-5 shadow-md"
     >
@@ -69,7 +75,7 @@ export default function PrivateOrientationCard({ prenom }) {
       </div>
 
       {formOuvert && <ContactPriveForm emailDestinataire={EMAIL_CONTACT} />}
-    </section>
+    </Reveal>
   );
 }
 
@@ -82,8 +88,6 @@ function ContactPriveForm({ emailDestinataire }) {
     setStatut('envoi');
 
     try {
-      // Enregistre la demande côté serveur (table contacts_prive) — voir database/schema.sql.
-      // Le serveur peut ensuite notifier `emailDestinataire` par email transactionnel (ex : Resend).
       const res = await fetch('/api/contact-prive', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
