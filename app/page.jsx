@@ -1,4 +1,4 @@
-import { LISTE_SERIES } from '@/lib/bacSeries';
+import { LISTE_SERIES, GROUPES } from '@/lib/bacSeries';
 import Reveal from '@/components/Reveal';
 import RippleLink from '@/components/RippleLink';
 
@@ -10,6 +10,12 @@ const POINTS_CLES = [
 ];
 
 export default function AccueilPage() {
+  // On exclut les spécialités DT/DEAT du compteur affiché : ce sont des
+  // spécialités d'un même diplôme technique, pas des "séries" au sens
+  // classique — les compter una par una gonflerait le chiffre de façon trompeuse.
+  const seriesClassiques = LISTE_SERIES.filter(
+    (s) => s.groupe !== GROUPES.TECHNIQUE_DT && s.groupe !== GROUPES.TECHNIQUE_DEAT
+  );
   return (
     <main className="mx-auto min-h-screen max-w-md px-5 pb-10 pt-14">
       <Reveal
