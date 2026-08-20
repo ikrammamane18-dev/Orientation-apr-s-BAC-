@@ -14,7 +14,7 @@ import { estSessionAdminValide } from '@/lib/adminAuth';
  */
 
 const schemaEntree = z.object({
-  serieCode: z.string().min(1).max(10),
+ codeSerie: z.string().min(1).max(30),
   serieNom: z.string().min(1).max(150),
   serieGroupe: z.string().min(1).max(100),
   matieres: z
