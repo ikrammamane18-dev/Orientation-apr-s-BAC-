@@ -6,7 +6,7 @@ import { getMatieresBySerie } from '@/lib/bacSeries';
 import { estLimite, getClientIp } from '@/lib/rateLimit';
 
 const schemaEntree = z.object({
-  codeSerie: z.string().min(1).max(10),
+ codeSerie: z.string().min(1).max(30),
   notes: z.record(z.string(), z.number().min(0).max(20)),
   etudiant: z
     .object({
