@@ -121,4 +121,22 @@ async function handlePost(request) {
   }
 
   return NextResponse.json({ sessionId: session.id });
+ // Transformer les virgules en points avant la conversion en nombre
+const parseNote = (valeur) => {
+  if (typeof valeur === 'number') return valeur;
+  if (!valeur) return NaN;
+  // Remplace la virgule par un point
+  const noteFormattee = String(valeur).trim().replace(',', '.');
+  return parseFloat(noteFormattee);
+};
+
+// Exemple d'utilisation sur vos notes
+const noteAnglais = parseNote(notes.anglais);
+
+if (isNaN(noteAnglais) || noteAnglais < 0 || noteAnglais > 20) {
+  return Response.json(
+    { error: "Note manquante ou invalide pour la matière anglais" },
+    { status: 400 }
+  );
+}
 }
