@@ -72,7 +72,7 @@ export default function AccueilPage() {
         className="mt-8 grid grid-cols-3 gap-2 rounded-2xl bg-white p-4 shadow-sm"
       >
         <div className="text-center">
-          <p className="font-serif text-xl font-bold text-[#14231C]">{LISTE_SERIES.length}</p>
+          <p className="font-serif text-xl font-bold text-[#14231C]">{seriesClassiques.length}</p>
           <p className="text-xs text-[#14231C]/50">Séries BAC</p>
         </div>
         <div className="text-center border-x border-[#14231C]/10">
